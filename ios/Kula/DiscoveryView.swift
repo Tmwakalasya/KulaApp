@@ -76,15 +76,15 @@ struct DiscoveryView: View {
         guard !isLoading, !Task.isCancelled else { return }
         isLoading = true
         message = nil
-        restaurants = [] // Only transient display state; no disk cache or database copy.
         defer { isLoading = false }
         do {
             let result = try await CatalogAPI().nearbyRestaurants()
             try Task.checkCancellation()
-            restaurants = result
+            restaurants = result // Only transient display state; no disk cache or database copy.
             loaded = true
         } catch is CancellationError {
         } catch {
+            restaurants = []
             message = error.localizedDescription
         }
     }

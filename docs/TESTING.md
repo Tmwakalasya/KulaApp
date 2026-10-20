@@ -15,8 +15,9 @@ milestone does not connect physical iPhones or Release builds to an API.
 - These listings have no Add button, generated sample photo, menu or invented price.
 - Pull to refresh immediately after a successful load. The API may show its
   three-second rate-limit message; wait, then use **Try again**.
-- Restart the API without a key. Nearby should explain that it is not connected,
-  while Explore and the sample cart continue working.
+- Restart the API without a key, then pull to refresh the open Nearby sheet.
+  Verify that Nearby explains that it is not connected, while Explore and the
+  sample cart continue working.
 
 ## Cart and quote
 
