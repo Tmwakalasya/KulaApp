@@ -13,7 +13,7 @@ import (
 )
 
 const endpoint = "https://places.googleapis.com/v1/places:searchNearby"
-const fieldMask = "places.id,places.displayName,places.formattedAddress,places.googleMapsUri,places.attributions"
+const fieldMask = "places.id,places.displayName,places.formattedAddress,places.googleMapsUri,places.attributions,places.photos"
 
 type attribution struct {
 	Provider    string `json:"provider"`
@@ -26,6 +26,19 @@ type place struct {
 	Address      string        `json:"address"`
 	MapsURL      string        `json:"maps_url"`
 	Attributions []attribution `json:"attributions"`
+	Photo        *photo        `json:"photo,omitempty"`
+}
+
+type photo struct {
+	Name               string        `json:"name"`
+	GoogleMapsURI      string        `json:"googleMapsUri"`
+	AuthorAttributions []photoAuthor `json:"authorAttributions"`
+}
+
+type photoAuthor struct {
+	DisplayName string `json:"displayName"`
+	URI         string `json:"uri"`
+	PhotoURI    string `json:"photoUri"`
 }
 
 // NewHandler makes at most one upstream attempt per user request. It stores no
@@ -105,6 +118,7 @@ func newHandler(apiKey string, client *http.Client, url string, interval time.Du
 				Address      string        `json:"formattedAddress"`
 				MapsURL      string        `json:"googleMapsUri"`
 				Attributions []attribution `json:"attributions"`
+				Photos       []photo       `json:"photos"`
 			} `json:"places"`
 		}
 		if err := json.Unmarshal(data, &upstream); err != nil {
@@ -120,7 +134,17 @@ func newHandler(apiKey string, client *http.Client, url string, interval time.Du
 			if attrs == nil {
 				attrs = []attribution{}
 			}
-			places = append(places, place{ID: p.ID, Name: p.DisplayName.Text, Address: p.Address, MapsURL: p.MapsURL, Attributions: attrs})
+			result := place{ID: p.ID, Name: p.DisplayName.Text, Address: p.Address, MapsURL: p.MapsURL, Attributions: attrs}
+			for _, candidate := range p.Photos {
+				if validPhotoName(candidate.Name) {
+					if candidate.AuthorAttributions == nil {
+						candidate.AuthorAttributions = []photoAuthor{}
+					}
+					result.Photo = &candidate
+					break
+				}
+			}
+			places = append(places, result)
 		}
 		if err := json.NewEncoder(w).Encode(struct {
 			Source      string  `json:"source"`

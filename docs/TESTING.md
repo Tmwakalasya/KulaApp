@@ -7,8 +7,12 @@ milestone does not connect physical iPhones or Release builds to an API.
 ## Nearby
 
 - Open **Nearby**. With a working Places key, real names and addresses should
-  appear with Google Maps attribution and working map links.
-- These listings have no Add button, sample photo, menu or invented price.
+  appear on cards with available place photos, Google Maps attribution and
+  working map links. Photos should load as the cards appear.
+- Check photo author credits, profile links and **Photo source** links.
+  Missing photos should show a neutral storefront placeholder. Failed photo
+  downloads should show a retry action while leaving the listing usable.
+- These listings have no Add button, generated sample photo, menu or invented price.
 - Pull to refresh immediately after a successful load. The API may show its
   three-second rate-limit message; wait, then use **Try again**.
 - Restart the API without a key. Nearby should explain that it is not connected,

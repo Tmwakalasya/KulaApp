@@ -36,6 +36,7 @@ func run() error {
 	}
 	mux := http.NewServeMux()
 	mux.Handle("/v1/discovery/restaurants", discovery.NewHandler(key))
+	mux.Handle("/v1/discovery/photo", discovery.NewPhotoHandler(key))
 	mux.Handle("/", catalog.Handler())
 
 	server := &http.Server{

@@ -80,9 +80,20 @@ struct CatalogAPI: Sendable {
         return response.restaurants
     }
 
-    private func fetch<T: Decodable>(_ path: String, body: Data? = nil) async throws -> T {
+    func nearbyPhoto(name: String) async throws -> Data {
+        struct Response: Decodable { let url: String }
+        let response: Response = try await fetch("discovery/photo", query: [URLQueryItem(name: "name", value: name)])
+        return try await GoogleImageLoader.data(from: response.url)
+    }
+
+    private func fetch<T: Decodable>(_ path: String, body: Data? = nil, query: [URLQueryItem] = []) async throws -> T {
         guard let baseURL else { throw CatalogError.unavailable }
-        var request = URLRequest(url: baseURL.appendingPathComponent(path))
+        guard var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else {
+            throw CatalogError.invalidResponse
+        }
+        if !query.isEmpty { components.queryItems = query }
+        guard let url = components.url else { throw CatalogError.invalidResponse }
+        var request = URLRequest(url: url)
         request.timeoutInterval = 10
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("application/json", forHTTPHeaderField: "Accept")

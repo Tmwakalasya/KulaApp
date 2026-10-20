@@ -2,7 +2,7 @@
 
 A native SwiftUI app and a Go API for the Oyster Bay / Masaki pilot.
 **Explore and Saved use fictional restaurants, menus and prices. Nearby shows
-live Google Places listings, without menus or ordering.** A sample cart can request
+live Google Places listings and available photos, without menus or ordering.** A sample cart can request
 a server-calculated food subtotal. No orders or payments are accepted.
 
 ## Run it
@@ -81,6 +81,7 @@ the app process restarts.
 | `GET /v1/restaurants/{id}` | Restaurant with menu, or HTTP 404 |
 | `POST /v1/quotes` | Validated sample food subtotal and five-minute expiry |
 | `GET /v1/discovery/restaurants` | Up to 20 live Google listings around the pilot area |
+| `GET /v1/discovery/photo?name=...` | Resolve one returned photo resource to a public image URL |
 
 Example quote request:
 
@@ -100,10 +101,18 @@ and invalid dish/quantity combinations 422. Unsupported methods return 405.
 Discovery uses a fixed approximate 3.5 km circle; it is not a delivery boundary
 or a complete restaurant census. It makes at most one Google attempt per request,
 uses an eight-second timeout and a 1 MiB response limit, and stores no Google
-content on disk or in a database. Google and third-party attributions appear in
-Nearby. Missing credentials return 503, upstream failure 502, and refreshes within
+content on disk or in a database. Each listing can include one photo reference.
+Nearby loads photos on demand at up to 800 × 600 pixels, with author credits,
+profile links and photo-source links. Missing photos use a neutral placeholder.
+Image downloads use an ephemeral session with a 3 MiB limit and a Google image
+host allowlist. Google and third-party attributions appear on the cards.
+Missing credentials return 503, upstream failure 502, and refreshes within
 the per-process three-second interval return 429. Errors do not include upstream
-response bodies or credentials. Details: [Google setup](docs/GOOGLE-PLACES.md).
+response bodies or credentials. The photo resolver accepts only a photo resource
+name, has a per-process burst of 20 with one request/second replenishment, and
+never forwards the API key to the image host. Photos incur additional API calls.
+These local limits are not shared authentication or a spending cap.
+Details: [Google setup](docs/GOOGLE-PLACES.md).
 
 There is no authentication, database, customer data, or location permission yet.
 The localhost-only App Transport Security exception is for local development;
@@ -125,7 +134,7 @@ and shutdown. It removes Google credentials from its child process and never
 calls Google.
 
 The focused Go handler tests cover quote validation and discovery success,
-failure, cancellation, attribution and simultaneous refreshes. Discovery tests
+failure, cancellation, attribution, photo URL validation and simultaneous requests. Discovery tests
 use a simulated upstream transport; CI needs no Google secrets or billing.
 These are functional checks, **not load benchmarks**. To additionally exercise
 the real HTTP server with the race detector:

@@ -34,7 +34,7 @@ func TestDiscoveryHTTPContract(t *testing.T) {
 		if payload.MaxResultCount != 20 || len(payload.IncludedTypes) != 1 || payload.IncludedTypes[0] != "restaurant" {
 			t.Error("unbounded discovery")
 		}
-		body := `{"places":[{"id":"sample-place","displayName":{"text":"Provider Test Restaurant"},"formattedAddress":"Dar es Salaam","googleMapsUri":"https://maps.google.com/example","attributions":[{"provider":"Example provider","providerUri":"https://example.com"}]}]}`
+		body := `{"places":[{"id":"sample-place","displayName":{"text":"Provider Test Restaurant"},"formattedAddress":"Dar es Salaam","googleMapsUri":"https://maps.google.com/example","attributions":[{"provider":"Example provider","providerUri":"https://example.com"}],"photos":[{"name":"places/sample-place/photos/test-photo","googleMapsUri":"https://maps.google.com/photo","authorAttributions":[{"displayName":"Test Author","uri":"https://maps.google.com/author","photoUri":"https://lh3.googleusercontent.com/avatar"}]}]}]}`
 		return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(body)), Header: make(http.Header)}, nil
 	})}
 	handler := newHandler("test-only-key", client, endpoint, time.Second)
@@ -52,6 +52,10 @@ func TestDiscoveryHTTPContract(t *testing.T) {
 	}
 	if result.Source != "google_maps" || len(result.Restaurants) != 1 || len(result.Restaurants[0].Attributions) != 1 {
 		t.Fatalf("missing result/attribution: %+v", result)
+	}
+	p := result.Restaurants[0].Photo
+	if p == nil || len(p.AuthorAttributions) != 1 || p.AuthorAttributions[0].DisplayName != "Test Author" || p.GoogleMapsURI != "https://maps.google.com/photo" {
+		t.Fatal("photo credit or source link was lost")
 	}
 	if strings.Contains(w.Body.String(), "test-only-key") || w.Header().Get("Cache-Control") != "no-store" {
 		t.Fatal("credential exposure or caching")
