@@ -1,5 +1,7 @@
 # Kula — Dar restaurant discovery and sample cart
 
+[![CI](https://github.com/Tmwakalasya/KulaApp/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/Tmwakalasya/KulaApp/actions/workflows/ci.yml)
+
 A native SwiftUI app and a Go API for the Oyster Bay / Masaki pilot.
 **Explore and Saved use fictional restaurants, menus and prices. Nearby shows
 live Google Places listings and available photos, without menus or ordering.** A sample cart can request
