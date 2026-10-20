@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+// TestQuoteHTTPContract checks pricing, expiry, cache headers and rejection of
+// invalid carts, client-supplied prices, malformed bodies and unsupported methods.
 func TestQuoteHTTPContract(t *testing.T) {
 	handler := Handler()
 	valid := `{"restaurant_id":"kivuli-kitchen","items":[{"menu_item_id":"beef-pilau","quantity":2},{"menu_item_id":"beans-rice","quantity":1}]}`

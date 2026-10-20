@@ -10,6 +10,8 @@ import (
 	"testing"
 )
 
+// TestPhotoHTTPContract checks upstream photo requests, response headers and
+// rejection of invalid resource queries before they reach the provider.
 func TestPhotoHTTPContract(t *testing.T) {
 	var calls atomic.Int32
 	client := &http.Client{Transport: transportFunc(func(r *http.Request) (*http.Response, error) {
@@ -45,6 +47,8 @@ func TestPhotoHTTPContract(t *testing.T) {
 	}
 }
 
+// TestPhotoFailuresDoNotExposeUpstreamData checks that unsafe URLs and invalid
+// provider responses produce generic failures without exposing the API key.
 func TestPhotoFailuresDoNotExposeUpstreamData(t *testing.T) {
 	for _, body := range []string{
 		`{"photoUri":"http://lh3.googleusercontent.com/image"}`,
@@ -67,6 +71,8 @@ func TestPhotoFailuresDoNotExposeUpstreamData(t *testing.T) {
 	}
 }
 
+// TestConcurrentPhotosRespectBurstLimit checks that concurrent photo requests
+// cannot exceed the initial burst of 20 upstream calls.
 func TestConcurrentPhotosRespectBurstLimit(t *testing.T) {
 	var calls atomic.Int32
 	client := &http.Client{Transport: transportFunc(func(*http.Request) (*http.Response, error) {

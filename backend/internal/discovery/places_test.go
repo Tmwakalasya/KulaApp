@@ -15,8 +15,11 @@ import (
 
 type transportFunc func(*http.Request) (*http.Response, error)
 
+// RoundTrip delegates to f so tests can simulate the upstream HTTP transport.
 func (f transportFunc) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
 
+// TestDiscoveryHTTPContract checks the bounded upstream query, returned listing
+// and photo attributions, credential handling, cache policy and refresh rate gate.
 func TestDiscoveryHTTPContract(t *testing.T) {
 	var calls atomic.Int32
 	client := &http.Client{Transport: transportFunc(func(r *http.Request) (*http.Response, error) {
@@ -67,6 +70,8 @@ func TestDiscoveryHTTPContract(t *testing.T) {
 	}
 }
 
+// TestDiscoveryFailures checks request rejection and generic provider failures
+// without exposing upstream credentials or project details.
 func TestDiscoveryFailures(t *testing.T) {
 	for _, tc := range []struct {
 		name, key, method, path string
@@ -107,6 +112,8 @@ func TestDiscoveryFailures(t *testing.T) {
 	}
 }
 
+// TestDiscoveryForwardsCancellation checks that canceling a discovery request
+// cancels its upstream request and returns a gateway failure.
 func TestDiscoveryForwardsCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
@@ -123,6 +130,8 @@ func TestDiscoveryForwardsCancellation(t *testing.T) {
 	}
 }
 
+// TestConcurrentRefreshesMakeOneUpstreamCall checks that simultaneous refreshes
+// share a rate gate that permits only one upstream attempt in the interval.
 func TestConcurrentRefreshesMakeOneUpstreamCall(t *testing.T) {
 	var calls atomic.Int32
 	client := &http.Client{Transport: transportFunc(func(*http.Request) (*http.Response, error) {

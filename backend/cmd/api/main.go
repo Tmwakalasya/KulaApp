@@ -16,6 +16,7 @@ import (
 	"kula.local/backend/internal/discovery"
 )
 
+// main runs the local API and exits with a nonzero status on failure.
 func main() {
 	if err := run(); err != nil {
 		slog.Error("API stopped", "error", err)
@@ -23,6 +24,8 @@ func main() {
 	}
 }
 
+// run loads optional Places credentials and serves the API until a server error
+// or termination signal, shutting down gracefully when signaled.
 func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()

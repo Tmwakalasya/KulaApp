@@ -14,6 +14,7 @@ import (
 
 var photoNamePattern = regexp.MustCompile(`^places/[A-Za-z0-9_-]+/photos/[A-Za-z0-9_-]+$`)
 
+// validPhotoName reports whether name is a Places photo resource of at most 4096 bytes.
 func validPhotoName(name string) bool {
 	return len(name) <= 4096 && photoNamePattern.MatchString(name)
 }
@@ -29,6 +30,8 @@ func NewPhotoHandler(apiKey string) http.Handler {
 	return newPhotoHandler(strings.TrimSpace(apiKey), client)
 }
 
+// newPhotoHandler uses the supplied client to resolve validated photo resources,
+// allowing a burst of 20 requests with one request per second replenishment.
 func newPhotoHandler(apiKey string, client *http.Client) http.Handler {
 	// One request/second replenishment, burst of 20. Atomic reservations prevent
 	// simultaneous card loads bypassing the per-process limit. No photo cache.

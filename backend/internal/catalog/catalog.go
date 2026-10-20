@@ -49,6 +49,7 @@ func Handler() http.Handler {
 	return mux
 }
 
+// writeJSON sends a JSON response with caching disabled and logs encoding errors.
 func writeJSON(w http.ResponseWriter, status int, value any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
@@ -59,6 +60,7 @@ func writeJSON(w http.ResponseWriter, status int, value any) {
 	}
 }
 
+// demoRestaurants returns a fresh catalog of fictional restaurants and TZS menus.
 func demoRestaurants() []Restaurant {
 	return []Restaurant{
 		{

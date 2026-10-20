@@ -128,6 +128,7 @@ struct RestaurantDetailView: View {
         .background(Palette.background)
     }
 
+    /// Builds the sample restaurant summary with cuisine, starting price and menu availability notice.
     private func restaurantIntroduction(_ restaurant: Restaurant) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(restaurant.name)
@@ -161,6 +162,7 @@ struct RestaurantDetailView: View {
         }
     }
 
+    /// Builds a searchable menu whose add actions handle restaurant replacement and cart limits.
     private func menuSection(_ restaurant: Restaurant) -> some View {
         let term = query.trimmingCharacters(in: .whitespacesAndNewlines)
         let items = restaurant.menu.filter {
@@ -209,6 +211,7 @@ struct RestaurantDetailView: View {
         }
     }
 
+    /// Refreshes the restaurant menu and loading state, preserving the current menu on cancellation or failure.
     @MainActor
     private func load() async {
         guard !isLoading, !Task.isCancelled else { return }

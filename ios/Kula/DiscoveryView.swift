@@ -71,6 +71,7 @@ struct DiscoveryView: View {
         }
     }
 
+    /// Refreshes transient nearby listings and loading state, showing failures while ignoring cancellation.
     @MainActor
     private func load() async {
         guard !isLoading, !Task.isCancelled else { return }
@@ -90,6 +91,7 @@ struct DiscoveryView: View {
     }
 }
 
+/// Normalizes a protocol-relative link and accepts only HTTPS URLs with a host and no user component.
 private func discoveryLink(_ value: String) -> URL? {
     let normalized = value.hasPrefix("//") ? "https:" + value : value
     guard let url = URL(string: normalized), url.scheme == "https", url.host != nil, url.user == nil else { return nil }
@@ -245,6 +247,7 @@ private struct PhotoCredit: View {
 // cookie store or API key on these requests. Redirects are restricted as well.
 enum GoogleImageLoader {
     private final class RedirectGuard: NSObject, URLSessionTaskDelegate {
+        /// Follows redirects only when the target passes the Google image URL allowlist.
         func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
                         newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
             completionHandler(request.url.flatMap { allowedURL($0.absoluteString) } == nil ? nil : request)
@@ -263,6 +266,7 @@ enum GoogleImageLoader {
         return URLSession(configuration: configuration, delegate: RedirectGuard(), delegateQueue: nil)
     }()
 
+    /// Accepts HTTPS Google image subdomains without an explicit port or user component.
     private static func allowedURL(_ value: String) -> URL? {
         guard let url = discoveryLink(value),
               url.host?.lowercased().hasSuffix(".googleusercontent.com") == true,
@@ -270,6 +274,8 @@ enum GoogleImageLoader {
         return url
     }
 
+    /// Downloads an allowed image in an ephemeral session, requiring HTTP 200 and an image MIME type.
+    /// Throws on invalid URLs or responses, network failures, or content exceeding 3 MiB.
     static func data(from value: String) async throws -> Data {
         guard let url = allowedURL(value) else { throw CatalogError.invalidResponse }
         var request = URLRequest(url: url)

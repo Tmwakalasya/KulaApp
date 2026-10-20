@@ -56,16 +56,19 @@ struct CatalogAPI: Sendable {
         #endif
     }
 
+    /// Fetches the sample restaurant catalog, propagating request and decoding errors.
     func restaurants() async throws -> [Restaurant] {
         struct Response: Decodable { let restaurants: [Restaurant] }
         let response: Response = try await fetch("restaurants")
         return response.restaurants
     }
 
+    /// Fetches a sample restaurant and its menu by catalog ID, propagating request and decoding errors.
     func restaurant(id: String) async throws -> Restaurant {
         try await fetch("restaurants/\(id)")
     }
 
+    /// Posts dish IDs and quantities for one restaurant and returns a server-priced quote, or throws on failure.
     func quote(restaurantID: String, items: [QuoteRequestItem]) async throws -> CartQuote {
         struct Request: Encodable {
             let restaurant_id: String
@@ -74,18 +77,22 @@ struct CatalogAPI: Sendable {
         return try await fetch("quotes", body: JSONEncoder().encode(Request(restaurant_id: restaurantID, items: items)))
     }
 
+    /// Fetches live listings for the fixed pilot area, propagating discovery and decoding errors.
     func nearbyRestaurants() async throws -> [NearbyRestaurant] {
         struct Response: Decodable { let restaurants: [NearbyRestaurant] }
         let response: Response = try await fetch("discovery/restaurants")
         return response.restaurants
     }
 
+    /// Resolves a Places photo resource and downloads its image, propagating resolution and download errors.
     func nearbyPhoto(name: String) async throws -> Data {
         struct Response: Decodable { let url: String }
         let response: Response = try await fetch("discovery/photo", query: [URLQueryItem(name: "name", value: name)])
         return try await GoogleImageLoader.data(from: response.url)
     }
 
+    /// Sends a GET, or a JSON POST when a body is supplied, and decodes a successful response with ISO 8601 dates.
+    /// Throws cancellation, server, availability or decoding errors as appropriate.
     private func fetch<T: Decodable>(_ path: String, body: Data? = nil, query: [URLQueryItem] = []) async throws -> T {
         guard let baseURL else { throw CatalogError.unavailable }
         guard var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else {

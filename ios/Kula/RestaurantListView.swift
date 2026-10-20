@@ -37,6 +37,7 @@ enum Cuisine: String, CaseIterable {
         }
     }
 
+    /// Reports whether the restaurant's cuisine matches this filter; the all-food filter accepts every restaurant.
     func includes(_ restaurant: Restaurant) -> Bool {
         switch self {
         case .all: true
@@ -367,6 +368,7 @@ struct RestaurantListView: View {
         .overlay(alignment: .top) { Divider().opacity(0.5) }
     }
 
+    /// Builds a navigation button with selection styling and dismisses search focus when activated.
     private func navigationItem(_ title: String, symbol: String, selected: Bool, action: @escaping () -> Void) -> some View {
         Button {
             action()
@@ -384,12 +386,14 @@ struct RestaurantListView: View {
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
+    /// Toggles a restaurant's saved state and persists the IDs in sorted, pipe-separated form.
     private func toggleSaved(_ id: String) {
         var updated = saved
         if updated.contains(id) { updated.remove(id) } else { updated.insert(id) }
         savedIDs = updated.sorted().joined(separator: "|")
     }
 
+    /// Refreshes the sample catalog and loading state, showing failures while ignoring navigation cancellation.
     @MainActor
     private func load() async {
         guard !isLoading, !Task.isCancelled else { return }

@@ -52,6 +52,8 @@ func NewHandler(apiKey string) http.Handler {
 	return newHandler(strings.TrimSpace(apiKey), client, endpoint, 3*time.Second)
 }
 
+// newHandler queries the fixed pilot area using the supplied client and endpoint,
+// spacing upstream attempts by interval and preserving listing attributions.
 func newHandler(apiKey string, client *http.Client, url string, interval time.Duration) http.Handler {
 	var nextRequest atomic.Int64
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

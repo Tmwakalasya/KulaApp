@@ -34,6 +34,8 @@ type quote struct {
 	Demo           bool        `json:"demo"`
 }
 
+// quoteHandler validates cart IDs and quantities against the supplied catalog
+// and returns server-priced TZS subtotals that expire after five minutes.
 func quoteHandler(restaurants []Restaurant) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fail := func(status int, message string) { writeJSON(w, status, map[string]string{"error": message}) }

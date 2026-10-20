@@ -15,6 +15,10 @@ BASE = "http://127.0.0.1:8087"
 
 
 def request(path, method="GET", payload=None):
+    """Call the local API with optional JSON and return status, headers and bytes.
+
+    HTTP error responses use the same tuple; connection and timeout errors propagate.
+    """
     data = json.dumps(payload).encode() if payload is not None else None
     headers = {"Content-Type": "application/json"} if data is not None else {}
     req = urllib.request.Request(BASE + path, method=method, data=data, headers=headers)

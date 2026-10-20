@@ -42,6 +42,7 @@ final class CartStore {
 
     var count: Int { lines.reduce(0) { $0 + $1.quantity } }
 
+    /// Adds one serving, invalidating the quote on success; reports a restaurant conflict or cart limit.
     func add(_ item: MenuItem, from restaurant: Restaurant) -> AddResult {
         if let restaurantID, restaurantID != restaurant.id { return .differentRestaurant }
         guard count < 50 else { return .limitReached }
@@ -58,6 +59,7 @@ final class CartStore {
         return .added
     }
 
+    /// Replaces the cart with one serving from the chosen restaurant and clears its quote.
     func replace(with item: MenuItem, from restaurant: Restaurant) {
         restaurantID = restaurant.id
         restaurantName = restaurant.name
@@ -65,6 +67,7 @@ final class CartStore {
         invalidateQuote()
     }
 
+    /// Adjusts a dish within cart limits, removing it at zero and invalidating the quote after a valid edit.
     func changeQuantity(id: String, by delta: Int) {
         guard let index = lines.firstIndex(where: { $0.id == id }) else { return }
         let quantity = lines[index].quantity + delta
@@ -74,12 +77,14 @@ final class CartStore {
         invalidateQuote()
     }
 
+    /// Advances the cart revision and clears the quote and error so pending responses become stale.
     private func invalidateQuote() {
         revision += 1
         quote = nil
         errorMessage = nil
     }
 
+    /// Requests a quote for a nonempty cart unless one is pending, applying results only if the cart is unchanged.
     func requestQuote() async {
         guard let restaurantID, !lines.isEmpty, !isQuoting else { return }
         isQuoting = true
@@ -101,6 +106,7 @@ final class CartStore {
     }
 }
 
+/// Formats whole Tanzanian shillings with the TZS prefix and Tanzanian English number grouping.
 func formatTZS(_ value: Int) -> String {
     "TZS \(value.formatted(.number.locale(Locale(identifier: "en_TZ"))))"
 }
